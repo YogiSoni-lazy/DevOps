@@ -1,0 +1,130 @@
+---
+- name: NFS server installations
+  hosts: master
+  tags: 
+    - install
+    - install_nfs
+  vars_files:
+    - vars.yaml
+
+  tasks:
+    - block:
+      - name: Package installation
+        yum:
+          name: "{{ item }}"
+          state: present
+        loop: "{{ package_list }}"
+
+      - name: Create nfs share folder
+        file: 
+          name: "{{ item }}"
+          state: directory
+          mode: 0777
+        loop: "{{ folders }}"
+
+      - name: Create files under nfs shared folder
+        shell: touch /details/file{A..Z}.txt  
+
+      - name: Configuration setting
+        template:
+          src: exports.j2
+          dest: /etc/exports
+        notify: 
+          - restart_me
+
+      - name: Start firewalld service
+        service:
+          name: firewalld
+          state: started
+
+      - name: Enable firewall services for nfs
+        firewalld:
+          service: "{{ item }}"
+          permanent: yes
+          state: enabled
+          immediate: yes
+        loop: "{{ firewall_service }}"
+
+      - name: Restart nfs service
+        service:
+          name: nfs-server
+          state: started
+
+      - name: Put SELinux in permissive mode
+        selinux:
+          policy: targeted
+          state: permissive
+
+      - name: "Set configuration status"
+        set_fact:
+          flag: true
+
+      rescue:
+      - name: Uninstall nfs package
+        yum:
+          name: "{{ item }}"
+          state: absent
+        when: item not in ["firewalld", "python3-firewall"]
+        loop: "{{ package_list }}"
+
+      - name: Remove nfs share folder
+        file: 
+          name: "{{ item }}"
+          state: absent
+        loop: "{{ folders }}"
+
+      - name: Remove nfs exports file
+        file:
+          state: absent
+          dest: /etc/exports
+
+      - name: Remove firewall services for nfs
+        firewalld:
+          service: "{{ item }}"
+          permanent: no
+          state: disabled
+          immediate: no
+        loop: "{{ firewall_service }}"
+
+      - name: "Set configuration status"
+        set_fact:
+          flag: false
+
+      always:
+      - name: Create NFS server details folder
+        local_action: file dest="/tmp/infodir/nfs" recurse=yes state=directory
+        run_once: true
+
+      - stat: path=/tmp/infodir/nfs/output.txt
+        register: file_state
+
+      - name: "Save NFS server details in /tmp/infodir/nfs/output.txt"
+        local_action:
+          module: lineinfile
+          line: "NFS Shared Folder: /details"
+          dest: /tmp/infodir/nfs/output.txt
+          regex: "NFS Shared"
+          create: yes
+        run_once: true
+        when: file_state.stat.exists is defined and not file_state.stat.exists
+
+      - name: Sending an e-mail using Gmail SMTP servers
+        mail:
+          host: 'smtp.gmail.com'
+          port: '587'
+          username: 'kripakoth@gmail.com'
+          password: 'qsmdqpsntljxatan'
+          to: 'Yogita Soni <yogitasoni9312@gmail.com>'
+          subject: 'NFS server status'
+          body: "{{ 'NFS server deployed successfully' if flag == true else 'NFS server not deployed' }}"
+        delegate_to: localhost
+        run_once: true
+
+  handlers:   
+    - name: restart_me
+      service:
+        name: nfs-server
+        state: reloaded
+
+...
+

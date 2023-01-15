@@ -1,0 +1,94 @@
+---
+########### NFS Destroy ##############
+# Execute using tags: ansible-playbook -i inventory --tags destroy_nfs site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e destroy_nfs=yes
+
+
+- name: Destroy NFS client
+  import_playbook: 00.nfs/destroy_nfs_client.yaml 
+  when: destroy is defined and destroy == "yes"  or destroy_nfs is defined and destroy_nfs == "yes"
+
+- name: Destroy NFS server
+  import_playbook: 00.nfs/destroy_nfs_server.yaml 
+  when: destroy is defined and destroy == "yes"  or destroy_nfs is defined and destroy_nfs == "yes"
+
+
+########### Samba Destroy ##############
+# Execute using tags: ansible-playbook -i inventory --tags destroy_samba site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e destroy_samba=yes
+
+- name: Destroy Samba client
+  import_playbook: 01.samba/destroy_samba_client.yaml
+  when: destroy is defined and destroy == "yes" or destroy_samba is defined and destroy_samba == "yes"
+
+- name: Destroy Samba server
+  import_playbook: 01.samba/destroy_samba_server.yaml
+  when: destroy is defined and destroy == "yes" or destroy_samba is defined and destroy_samba == "yes"
+
+
+########### Apache Destroy ##############
+# Execute using tags: ansible-playbook -i inventory --tags destroy_httpd site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e destroy_httpd=yes
+
+- name: Destroy HTTPD server
+  import_playbook: 02.httpd/destroy_apache_server.yaml
+  when: destroy is defined and destroy == "yes" or destroy_httpd is defined and destroy_httpd == "yes"
+
+########### Mysql Destroy ##############
+# Execute using tags: ansible-playbook -i inventory --tags destroy_mysql site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e destroy_mysql=yes
+
+- name: Destroy MYSQL server
+  import_playbook: 03.mysql/destroy_mysql_server.yaml
+  when: destroy is defined and destroy == "yes" or destroy_mysql is defined and destroy_mysql == "yes"
+
+########### MongoDB Destroy ##############
+# Execute using tags: ansible-playbook -i inventory --tags destroy_mongodb site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e destroy_mongodb=yes
+
+- name: Destroy MongoDB server
+  import_playbook: 04.mongodb/destroy_mongodb_server.yaml
+  when: destroy is defined and destroy == "yes" or destroy_mongodb is defined and destroy_mongodb == "yes"
+
+########### Jenkins Destroy ##############
+# Execute using tags: ansible-playbook -i inventory --tags destroy_jenkins site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e destroy_jenkins=yes
+
+- name: Destroy Jenkins server
+  import_playbook: 05.jenkins/destroy_jenkins_server.yaml
+  when: destroy is defined and destroy == "yes" or destroy_jenkins is defined and destroy_jenkins == "yes"
+
+########### Nginx Destroy ##############
+# Execute using tags: ansible-playbook -i inventory --tags destroy_nginx site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e destroy_nginx=yes
+
+- name: Destroy Nginx server
+  import_playbook: 06.nginx/destroy_nginx_server.yaml
+  when: destroy is defined and destroy == "yes" or destroy_nginx is defined and destroy_nginx == "yes"
+
+########### Nagios Destroy ##############
+# Execute using tags: ansible-playbook -i inventory --tags destroy_nagios site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e destroy_nagios=yes
+
+- name: Destroy Nagios server
+  import_playbook: 07.nagios/destroy_nagios_server.yaml
+  when: destroy is defined and destroy == "yes" or destroy_nagios is defined and destroy_nagios == "yes"
+
+########### Wordpress Destroy ##############
+# Execute using tags: ansible-playbook -i inventory --tags destroy_wordpress site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e destroy_wordpress=yes
+
+- name: Destroy Wordpress server
+  import_playbook: 08.wordpress/destroy_wordpress_server.yaml
+  when: destroy is defined and destroy == "yes" or destroy_wordpress is defined and destroy_wordpress == "yes"
+
+...

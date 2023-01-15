@@ -1,0 +1,30 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-18.04"
+
+  # using a specific IP.
+  config.vm.network "private_network", ip: "172.18.0.11"
+
+  # config.vm.network "public_network"
+
+   config.vm.provider "virtualbox" do |vb|
+     vb.memory = "2048"
+   end
+   config.vm.provision "shell", inline: <<-SHELL
+     sudo apt-get update
+     sudo apt-get install -y ansible git expect
+     sudo hostnamectl set-hostname master 
+     sudo echo -e "redhat\nredhat" | sudo  passwd root
+     sudo echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
+     sudo echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+     sudo sed -i 's/old-text/new-text/g' /etc/ssh/ssh_config
+     sudo sed -i "s/#   StrictHostKeyChecking ask/StrictHostKeyChecking no/g" /etc/ssh/ssh_config
+     sudo systemctl restart sshd
+     sudo git clone https://github.com/lavatech321/DevOps_Projects.git /tmp/project
+     sudo ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+     sudo echo -e "\n172.18.0.11   master\n172.18.0.12   worker1\n" >> /etc/hosts
+     sudo expect /tmp/project/vagrant/passwordless
+
+     sudo ansible-playbook -i /tmp/project/inventory /tmp/project/main.yaml
+
+   SHELL
+end

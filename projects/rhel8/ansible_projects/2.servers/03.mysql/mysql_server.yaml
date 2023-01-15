@@ -1,0 +1,152 @@
+---
+- name: "Install MYSQL server"
+  hosts: master
+  gather_facts: no
+  tags:
+    - install_mysql_server
+    - install_mysql
+    - install
+
+  vars_files:
+    - vars.yaml
+
+  tasks:
+    - block:
+        - name: "Install mariadb"
+          yum:
+            name: "{{ list }}"
+            state: latest
+
+        - name: Install Required pip modules
+          pip:
+            name: PyMySQL
+            state: present
+            executable: pip3
+
+        - name: "Start service"
+          service:
+            name: mariadb
+            state: started
+
+        - name: Ensure root user can only login from localhost
+          mysql_user:
+            login_password: redhat
+            check_implicit_admin: yes
+            name: root
+            host: "{{ item }}"
+            password: redhat
+            state: present
+          with_items:
+            - localhost
+            - 127.0.0.1
+
+        - name: Add .my.cnf to user home
+          template:
+            src: my.cnf.j2
+            dest: /root/.my.cnf
+
+        - name: Reload privilege tables
+          command: |
+            mysql -p{{ mysql_root_password }} -ne "{{ item }}"
+          with_items:
+            - FLUSH PRIVILEGES
+            - DELETE FROM mysql.user WHERE User=''
+            - DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')
+            - DROP DATABASE IF EXISTS test
+            - DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'
+            - FLUSH PRIVILEGES
+          changed_when: False
+
+        - name: Delete .my.conf
+          file:
+            path: /root/.my.cnf
+            state: absent
+
+        - name: Put SELinux in permissive mode
+          selinux:
+            policy: targeted
+            state: permissive
+
+        - name: Add firewall port for mysql
+          firewalld:
+            port: 3306/tcp
+            permanent: yes
+            state: enabled
+            immediate: yes
+
+        - name: create wordpress database
+          mysql_db:
+            name: wordpress
+            state: present
+            login_user: root
+            login_password: redhat
+
+        - name: Allow root access from anywhere
+          shell: mysql -uroot -predhat -e "CREATE USER 'root'@'%' IDENTIFIED BY 'redhat'; GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';FLUSH PRIVILEGES;"
+
+          #- name: Create customer database
+          #shell: mysql -uroot -predhat -e "create database customer"
+
+        - name: "Set configuration status"
+          set_fact:
+            flag: true
+
+      rescue:
+        - name: Remove Packages
+          yum:
+            name: "{{ item }}"
+            state: absent
+          when: item not in ["firewalld", "python3-firewall"]
+          loop:  "{{ list }}"
+
+        - file:
+            name: "/var/lib/mysql"
+            state: absent
+
+        - name: Remove firewall port for mysql
+          firewalld:
+            port: 3306/tcp
+            permanent: no
+            state: disabled
+            immediate: no
+
+        - name: "Set configuration status"
+          set_fact:
+            flag: false
+
+      always:
+      - name: Create Mysql server details folder
+        local_action: file dest="/tmp/infodir/mysql" recurse=yes state=directory
+
+      - stat: path=/tmp/infodir/mysql/output.txt
+        register: file_state
+
+      - name: "Save Apache server details in /tmp/infodir/httpd/output.txt"
+        lineinfile:
+          line: "MYSQL Server Login: mysql -uroot -p{{ mysql_root_password }}"
+          dest: /tmp/infodir/mysql/output.txt
+          create: yes
+        when: file_state.stat.exists is defined and not file_state.stat.exists
+
+      - name: "Capturing details from /tmp/infodir/mysql/output.txt"
+        shell: cat /tmp/infodir/mysql/output.txt
+        register: output
+
+      - name: "Displaying details of /tmp/infodir/mysql/output.txt"
+        debug: msg='{{ output.stdout.split("\n") }}'
+
+      - name: Sending an e-mail using Gmail SMTP servers
+        mail:
+          host: 'smtp.gmail.com'
+          port: '587'
+          username: 'kripakoth@gmail.com'
+          password: 'qsmdqpsntljxatan'
+          to: 'Yogita Soni <yogitasoni9312@gmail.com>'
+          subject: 'MYSQL server status'
+          body: "{{ 'MYSQL server deployed successfully' if flag == true else 'MYSQL server not deployed' }}"
+        delegate_to: localhost
+        run_once: true
+        ignore_errors: yes
+
+
+...

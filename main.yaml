@@ -1,0 +1,10 @@
+---
+# Docker 
+- import_playbook: tools/docker_install/main.yaml
+# Kubernetes
+- import_playbook: tools/kubernetes_install/main.yaml
+# Jenkins
+- import_playbook: tools/jenkins_install/main.yaml
+# Terraform
+- import_playbook: tools/terraform_install/main.yaml
+...

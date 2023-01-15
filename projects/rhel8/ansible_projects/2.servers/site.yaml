@@ -1,0 +1,101 @@
+---
+########### NFS installation ##############
+# Execute using tags: ansible-playbook -i inventory --tags install_nfs site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e install_nfs=yes
+- hosts: localhost
+  any_errors_fatal: true
+
+- name: Configure NFS server
+  import_playbook: 00.nfs/nfs_server.yaml 
+  when: install is defined and install == "yes" or install_nfs is defined and install_nfs == "yes"
+
+- name: Configure NFS client
+  import_playbook: 00.nfs/nfs_client.yaml 
+  when: install is defined and install == "yes" or install_nfs is defined and install_nfs == "yes"
+
+########### Samba installation ##############
+# Execute using tags: ansible-playbook -i inventory --tags install_samba site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e install_samba=yes
+
+- name: Configure Samba server
+  import_playbook: 01.samba/samba_server.yaml
+  when: install is defined and install == "yes" or install_samba is defined and install_samba == "yes"
+
+- name: Configure Samba client
+  import_playbook: 01.samba/samba_client.yaml
+  when: install is defined and install == "yes" or install_samba is defined and install_samba == "yes"
+
+########### Apache  installation ##############
+
+# Execute using tags: ansible-playbook -i inventory --tags install_httpd site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e install_httpd=yes
+
+- name: Configure HTTPD server
+  import_playbook: 02.httpd/apache_server.yaml
+  when: install is defined and install == "yes" or install_httpd is defined or install_httpd == "yes"
+
+
+########### Mysql/Mariadb installation ##############
+
+# Execute using tags: ansible-playbook -i inventory --tags install_mysql site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e install_mysql=yes
+
+- name: Configure MYSQL server
+  import_playbook: 03.mysql/mysql_server.yaml
+  when: install is defined and install == "yes" or install_mysql is defined and install_mysql == "yes"
+
+########### MongoDB installation ##############
+
+# Execute using tags: ansible-playbook -i inventory --tags install_mongodb site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e install_mongodb=yes
+
+- name: Configure MongoDB server
+  import_playbook: 04.mongodb/mongodb_server.yaml
+  when: install is defined and install == "yes" or install_mongodb is defined and install_mongodb == "yes"
+
+########### Jenkins installation ##############
+
+# Execute using tags: ansible-playbook -i inventory --tags install_jenkins site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e install_jenkins=yes
+
+- name: Configure Jenkins server
+  import_playbook: 05.jenkins/jenkins_server.yaml
+  when: install is defined and install == "yes" or install_jenkins is defined and install_jenkins == "yes"
+
+########### Nginx installation ##############
+
+# Execute using tags: ansible-playbook -i inventory --tags install_nginx site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e install_nginx=yes
+
+- name: Configure Nginx server
+  import_playbook: 06.nginx/nginx_server.yaml
+  when: install is defined and install == "yes" or install_nginx is defined and install_nginx == "yes"
+
+########### Nagios installation ##############
+
+# Execute using tags: ansible-playbook -i inventory --tags install_nagios site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e install_nagios=yes
+
+- name: Configure Nagios server
+  import_playbook: 07.nagios/nagios_server.yaml
+  when: install is defined and install == "yes" or install_nagios is defined and install_nagios == "yes"
+
+########### Wordpress installation ##############
+
+# Execute using tags: ansible-playbook -i inventory --tags install_wordpress site.yaml
+# OR
+# Execute using extra variable: ansible-playbook -i inventory site.yaml -e install_wordpress=yes -e install_mysql=yes
+
+- name: Configure Wordpress server
+  import_playbook: 08.wordpress/wordpress_server.yaml
+  when: install is defined and install == "yes" or install_wordpress is defined and install_wordpress == "yes"
+
+...

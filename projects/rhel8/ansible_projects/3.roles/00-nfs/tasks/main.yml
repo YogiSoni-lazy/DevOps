@@ -1,0 +1,10 @@
+# tasks file for nfs
+---
+- name: Install the correct web server for RHEL
+  import_tasks: nfs-server.yaml
+  when: ansible_facts['fqdn']|lower == 'rhel8'
+
+- name: Install the correct web server for Debian
+  import_tasks: nfs-client.yaml
+  when: ansible_facts['fqdn']|lower == 'node'
+...

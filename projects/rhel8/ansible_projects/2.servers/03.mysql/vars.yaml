@@ -1,0 +1,13 @@
+list:
+  - mariadb
+  - mariadb-server
+  - python39
+  - python39-devel
+  - python39-pip
+  - gcc
+  - python3-firewall
+  - firewalld
+ansible_python_interpreter: /usr/bin/python3.6
+mysql_root_password: redhat
+flag: false
+
