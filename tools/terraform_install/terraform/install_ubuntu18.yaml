@@ -1,10 +1,9 @@
 ---
-- hosts: "masters, workers"
+- hosts: localhost
   become: yes
   become_method: sudo
   become_user: root
   gather_facts: no
-
   tasks:
      - name: Download the signing key for terraform repository
        apt_key:
